@@ -32,6 +32,7 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Locale;
 import java.util.Set;
 import java.util.concurrent.Semaphore;
@@ -69,7 +70,10 @@ public class PluginMarker extends MyPlugin implements MyPluginInterface {
       public void run() {
         Set<String> keySet = pluginMap.objects.keys;
         if (keySet.size() > 0) {
-          String[] objectIdArray = keySet.toArray(new String[keySet.size()]);
+          String[] objectIdArray;
+          synchronized (pluginMap.objects) {
+            objectIdArray = keySet.toArray(new String[keySet.size()]);
+          }
 
           for (String objectId : objectIdArray) {
             if (pluginMap.objects.containsKey(objectId)) {
@@ -153,9 +157,12 @@ public class PluginMarker extends MyPlugin implements MyPluginInterface {
       // clean up properties as much as possible
       //--------------------------------------
       cordova.getActivity().runOnUiThread(() -> {
-        Set<String> keySet = pluginMap.objects.keys;
+        Set<String> keySet = new HashSet<>(pluginMap.objects.keys);
         if (keySet.size() > 0) {
-          String[] objectIdArray = keySet.toArray(new String[keySet.size()]);
+          String[] objectIdArray;
+          synchronized (pluginMap.objects) {
+            objectIdArray = keySet.toArray(new String[keySet.size()]);
+          }
 
           for (String objectId : objectIdArray) {
             if (pluginMap.objects.containsKey(objectId)) {
